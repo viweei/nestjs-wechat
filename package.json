@@ -1,6 +1,6 @@
 {
-  "name": "nestjs-wechat",
-  "version": "0.0.1",
+  "name": "@viweei/nestjs-wechat",
+  "version": "0.0.2",
   "description": "",
   "author": "viweei",
   "license": "MIT",
