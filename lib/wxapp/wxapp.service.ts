@@ -24,17 +24,13 @@ export class WxAppService {
   async getAccessToken(): Promise<{ access_token: string, expires_in: number }> {
     const { AppId, Secret } = this.options;
 
-    const { data } = await this.client.get(`/cgi-bin/token`, {
+    return this.client.get(`/cgi-bin/token`, {
       params: {
         grant_type: 'client_credential',
         appid: this.options.AppId,
         secret: this.options.Secret
       }
     });
-
-    if (data.errcode) throw new WeChatException(data);
-
-    return data;
   }
 
   async login(code: string): Promise<{ session_key: string, openid: string }> {
