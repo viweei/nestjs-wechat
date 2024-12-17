@@ -4,7 +4,7 @@ import { WxAppModuleOptions } from '../types';
  */
 export declare class WxAppService {
     private readonly options;
-    private readonly client;
+    private readonly baseUrl;
     constructor(options: WxAppModuleOptions);
     getAccessToken(): Promise<{
         access_token: string;

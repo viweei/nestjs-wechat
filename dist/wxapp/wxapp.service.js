@@ -16,46 +16,53 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.WxAppService = void 0;
-const axios_1 = __importDefault(require("axios"));
+const node_fetch_1 = __importDefault(require("node-fetch"));
 const common_1 = require("@nestjs/common");
-const wxapp_declare_1 = require("./wxapp.declare");
 const exception_1 = require("../exception");
+const wxapp_declare_1 = require("./wxapp.declare");
 /**
  * @publicApi
  */
 let WxAppService = class WxAppService {
     constructor(options) {
         this.options = options;
-        this.client = axios_1.default.create({
-            baseURL: 'https://api.weixin.qq.com',
-            timeout: 1000,
-        });
+        this.baseUrl = 'https://api.weixin.qq.com/';
     }
     async getAccessToken() {
         const { AppId, Secret } = this.options;
-        const { data } = await this.client.get(`/cgi-bin/token`, {
-            params: {
-                grant_type: 'client_credential',
-                appid: this.options.AppId,
-                secret: this.options.Secret
-            }
+        const params = Object.fromEntries(Object.entries({
+            'grant_type': 'client_credential',
+            'appid': AppId,
+            'secret': Secret
+        }).filter(([_, value]) => value !== undefined && value !== null));
+        const url = new URL('cgi-bin/token', this.baseUrl);
+        url.search = new URLSearchParams(params).toString();
+        const { status, data } = await (0, node_fetch_1.default)(url).then(async (response) => {
+            return {
+                status: response.status,
+                data: await response.json()
+            };
         });
         if (data.errcode)
             throw new exception_1.WeChatException(data);
-        return data;
+        return { access_token: data.access_token, expires_in: data.expires_in };
     }
     async login(code) {
-        const { data } = await this.client.get('/sns/jscode2session', {
-            params: {
-                appid: this.options.AppId,
-                secret: this.options.Secret,
-                js_code: code,
-                grant_type: 'authorization_code'
-            }
+        const url = new URL('sns/jscode2session', this.baseUrl);
+        const params = Object.fromEntries(Object.entries({
+            appid: this.options.AppId,
+            secret: this.options.Secret,
+            js_code: code,
+            grant_type: 'authorization_code'
+        }).filter(([_, value]) => value !== undefined && value !== null));
+        url.search = new URLSearchParams(params).toString();
+        const { status, data } = await (0, node_fetch_1.default)(url).then(async (response) => {
+            return {
+                status: response.status,
+                data: await response.json()
+            };
         });
-        if (data.errcode)
-            throw new exception_1.WeChatException(data);
-        return data;
+        return { session_key: '', openid: '' };
     }
 };
 exports.WxAppService = WxAppService;
